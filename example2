@@ -1,0 +1,93 @@
+import pygame, sys
+
+class ToggleButton:
+
+    def __init__(self, game_instance, text, xpos, ypos, width, height):
+        """Initialise the toggle box attributes."""
+        self.game_instance = game_instance
+        self.text = text
+        self.xpos, self.ypos = xpos, ypos
+        self.width, self.height = width, height
+        self.screen = game_instance.screen
+        
+        self.rect = pygame.Rect(self.xpos, self.ypos, self.width, self.height)
+        self.font = pygame.font.Font(None, 24)
+        
+        self.default_text_colour = (150, 150, 150)
+        self.mouseover_text_colour = (150, 250, 150)
+        self.box_colour = (0, 250, 0)
+                
+        self.mouseover_text_highlight = True
+        self.active = False
+
+    def prep_text(self, text, text_colour):
+        """Turn text label into a rendered image and place to the right of the toggle box."""
+        self.text_img = self.font.render(text, True, text_colour)
+        self.text_img_rect = self.text_img.get_rect()
+        self.text_img_rect.left = self.rect.right+10
+        self.text_img_rect.centery = self.rect.centery
+
+    def draw(self):
+        """Draw text box to the screen."""
+        # Draw selection box filled or not filled depending on active status.
+        if self.active:
+            pygame.draw.rect(self.screen, self.box_colour, self.rect, 0)
+        else:
+            pygame.draw.rect(self.screen, self.box_colour, self.rect, 3)
+            
+        # Optional mouseover text highlight.
+        if self.rect.collidepoint(pygame.mouse.get_pos()) and self.mouseover_text_highlight:
+            text_colour = self.mouseover_text_colour
+        else:
+            text_colour = self.default_text_colour
+            
+        # Draw text.
+        self.prep_text(self.text, text_colour)
+        self.screen.blit(self.text_img, self.text_img_rect)
+
+    def toggle(self):
+        """Toggles active on and off."""
+        self.active = not self.active
+
+
+class ToggleButtonTest:
+
+    def __init__(self):
+        """Initialise test and resources."""
+        pygame.init()
+        self.screen = pygame.display.set_mode((300, 125))
+        pygame.display.set_caption("Toggle box test")
+        self.bg_color = (25, 25, 25)
+
+        self.sounds_on = False
+        
+        self.toggle_button = ToggleButton(self, "Sounds", 50,  50, 25, 25)
+
+    def run_game(self):
+        """Main loop"""
+        while True:
+            self.screen.fill(self.bg_color)
+            self.toggle_button.draw()
+            for event in pygame.event.get():
+                self.check_events(event)
+            pygame.display.flip()
+
+    def check_events(self, event):
+        """Check incoming mouse and keyboard events."""
+        if event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed() == (1, 0, 0):
+            if self.toggle_button.rect.collidepoint(pygame.mouse.get_pos()) or self.toggle_button.text_img_rect.collidepoint(pygame.mouse.get_pos()):
+                self.toggle_button.toggle()
+                self.toggle_sounds()
+                print(f'\nOriginal Boolean: {self.sounds_on}\nBoolean inside Toggle Button instance: {self.toggle_button.active}')
+
+        elif event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+    def toggle_sounds(self):
+        """Switch between sounds on and sounds off."""
+        self.sounds_on = not self.sounds_on
+
+tbt = ToggleButtonTest()
+tbt.run_game()
+
